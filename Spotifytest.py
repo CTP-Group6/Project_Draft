@@ -1,12 +1,11 @@
 import streamlit as st
 import pandas as pd
-
+import matplotlib.pyplot as plt
+import plotly.express as px
+from mpl_toolkits import mplot3d
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-
 import songrec
-
-
 #import polarplot
 #import songrecommendations
 
@@ -17,24 +16,25 @@ st.set_page_config(
     initial_sidebar_state='auto'
 )
 
-SPOTIPY_CLIENT_ID='7d7aa1b9af674ac99d3775655dad399e'
-SPOTIPY_CLIENT_SECRET='62010bcc96ab4c24a050d3ac1d0b6b5c'
-#SPOTIPY_REDIRECT_URI='WavFinder.streamlit.app'
+#User-specfic ID and SECRET, DONT PUSH WITH THIS
+SPOTIPY_CLIENT_ID='538e939cf8ef4442a022c1c7f8b5188d'
+SPOTIPY_CLIENT_SECRET='97e65146707242209cebcd4c76d09457'
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#sp_oauth = spotipy.oauth2.SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET)
-#redirect_uri=REDIRECT_URI,scope=SCOPE, show_dialog=True, cache_path=CACHE)
 
 #Authentication - without user
 client_credentials_manager = SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager = client_credentials_manager)
-st.header('test for spotify API')
 
+st.header('Test for Spotify API')
 distancechoices = ['Very Far', 'far', 'Close', 'Very Close']
+genrechoices = ['Pop', 'Rock', 'Hip Hop', 'Country']
+
 Distance = st.selectbox(
     label = "Select Distance below",
     options = distancechoices
 )
-genrechoices = ['Pop', 'Rock', 'Hip Hop', 'Country']
+
 Genre = st.selectbox(
     label = "Select Genre Below",
     options = genrechoices
@@ -43,17 +43,18 @@ Genre = st.selectbox(
 search_keyword = st.text_input(
     label = "Search for a Song"
 )
+
 button_clicked = st.button("Search")
 
 search_results = []
 tracks = []
 if search_keyword is not None and len(str(search_keyword)) > 0:
-    st.write("start song search")
+    st.write("Searching for song...")
     tracks = sp.search(q='track'+search_keyword,type='track')
     tracks_list = tracks['tracks']['items']
     if len(tracks_list) > 0:
         for track in tracks_list:
-            #st.write(track['name'] + " - By - " + track['artists'][0]['name'])
+            st.write(track['name'] + " - By - " + track['artists'][0]['name'])
             search_results.append(track['name'] + " - By - " + track['artists'][0]['name'])
 
 selected_track = None
@@ -77,11 +78,12 @@ if selected_track is not None and len(tracks) > 0:
         #image = songrecommendations.get_album_mage(track_id)
         #st.image(image)
         track_choices = ['Song Features', 'Similar Songs Recommendation']
-        selected_track_choice = st.sidebar.selectbox('Please select track choice: ', track_choices)        
+        selected_track_choice = st.sidebar.selectbox('Please select track choice: ', track_choices)    
+
         if selected_track_choice == 'Song Features':
             track_features  = sp.audio_features(track_id) 
             df = pd.DataFrame(track_features, index=[0])
-            df_features = df.loc[: ,['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'speechiness', 'valence']]
+            df_features = df.loc[: ,['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'speechiness', 'tempo', 'valence']]
             st.dataframe(df_features)
             if preview is not None:
                 st.audio(preview, format="audio/mp3")
@@ -110,9 +112,63 @@ if selected_track is not None and len(tracks) > 0:
             lulaudio = recommendation_df.iloc[0]
             st.audio(lulaudio['preview_url'], format="audio/mp3")
             #songrec.song_recommendation_vis(recommendation_df)
-            
+
     else:
-        st.write("Please select a track from the list")       
+        st.write("Please select a track from the list")   
+
+if st.button("Graph"):
+    if selected_track_choice == 'Similar Songs Recommendation':
+        st.write("Creating graph based off your chosen song")
+    #chosen_song_df = recommendation_df
+   # graph_df = chosen_song_df.append(recommendation_list_df, ignore_index=True)
+    #st.dataframe(recommendation_list_df)
+        graph_df = pd.DataFrame()
+     
+    #st.dataframe(recommendation_list_df)
+
+        for index, row in recommendation_list_df.iterrows():
+            temp_track_id = row['id']
+        #track_name = row['name']
+            temp_track_features  = sp.audio_features(temp_track_id) 
+        #st.dataframe(track_features)
+            temp_df = pd.DataFrame(temp_track_features, index=[0])
+            temp_features_df = temp_df.loc[: ,['acousticness', 'danceability', 'tempo', 'energy']]
+            graph_df = graph_df.append(temp_features_df)
+
+    #st.dataframe(graph_df)
+
+    #x = graph_df['tempo']
+    #y = graph_df['energy']
+    #z = graph_df['danceability']
+    #fig = plt.figure(figsize = (12,10))
+    #ax= fig.add_subplot(111, projection='3d')
+    #ax.scatter(x, y, z, cmap='viridis')
+
+
+    #ax.set_xlabel('Tempo')
+    #ax.set_ylabel('Energy')
+    #ax.set_zlabel('Danceability')
+   # st.pyplot(plt.gcf())
+        fig = px.scatter_3d(graph_df, x='tempo', y='energy', z='danceability', color='acousticness', size_max=18,
+                    color_continuous_scale='aggrnyl', labels={'tempo': 'Tempo', 'energy': 'Energy', 'danceability': 'Danceability'})
+
+    elif selected_track_choice == 'Song Features':
+        st.write("Creating graph based off features of your chosen song")
+        graph_df = df_features
+        graph_df
+
+        temp_features_df = graph_df.loc[: ,['acousticness', 'danceability', 'tempo', 'energy']]
+        graph_df = graph_df.append(temp_features_df)
+        fig = px.scatter_3d(graph_df, x='tempo', y='energy', z='danceability', color='acousticness', size_max=18,
+                    color_continuous_scale='aggrnyl', labels={'tempo': 'Tempo', 'energy': 'Energy', 'danceability': 'Danceability'})
+
+    
+    #fig.update_layout(paper_bgcolor='rgb(250, 240, 250)')
+
+    
+        st.plotly_chart(fig)
+
+
 
 with st.sidebar: # creates side bar
     Energy = st.slider(

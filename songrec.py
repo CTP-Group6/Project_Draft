@@ -30,4 +30,8 @@ def get_track_recommendations(seed_tracks,token):
     }
 
     res = requests.get(url=recUrl, headers=headers)
+    print('--------------------------------')
+    print(res.content)
+    print(res.json())
+    print(res)
     return res.json()
