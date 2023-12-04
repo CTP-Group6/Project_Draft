@@ -21,8 +21,8 @@ st.set_page_config(
 )
 
 # Spotify API credentials
-SPOTIPY_CLIENT_ID='17ff12d78c1d4601888d60cedc7c811f'
-SPOTIPY_CLIENT_SECRET='0ae299f7f6474f4d92d4224044dc6b17'
+SPOTIPY_CLIENT_ID=''
+SPOTIPY_CLIENT_SECRET=''
 #SPOTIPY_REDIRECT_URI='WavFinder.streamlit.app'
 songs_data = pd.read_csv('preprocessed_songs.csv')
 genre_matrix = pd.read_csv('preprocessed_matrix.csv').set_index('0')
