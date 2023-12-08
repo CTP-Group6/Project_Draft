@@ -152,11 +152,6 @@ if selected_track is not None and len(tracks) > 0:
             st.write("Recommendations....")
             st.dataframe(recommendation_list_df[['name', 'artists', 'explicit', 'duration_ms', 'popularity']])
 
-            # Playing the first track's preview
-            if not recommendation_list_df.empty:
-                first_track = recommendation_list_df.iloc[0]
-                if first_track['preview_url'] is not None:
-                    st.audio(first_track['preview_url'], format="audio/mp3")
         elif similar_consigned_button:
                     update_sliders_based_on_track(track_features)
                     selected_genre_songs = songrec.update_distance_selection(selected_distance, selected_genre, songs_data)
@@ -171,7 +166,7 @@ if selected_track is not None and len(tracks) > 0:
 
                         # Recommend top 5 matching songs
                         st.write("Top 5 Recommendations:")
-                        st.dataframe(recommendations[['name', 'artists', 'genre', 'danceability', 'energy', 'valence']].head(10))
+                        st.dataframe(recommendations[['name', 'artists', 'genre','energy', 'danceability', 'valence']].head(10))
                         
                         st.write("Creating graph of similar songs...")
 
@@ -180,32 +175,30 @@ if selected_track is not None and len(tracks) > 0:
                         # Get track information for multiple tracks
                         tracks_info = sp.tracks(track_ids)
 
-                        # Convert track information to a dictionary for easier access
-                        tracks_info_dict = {track['id']: track for track in tracks_info['tracks']}
 
                         temp_features_df_list = []
 
-                        for index, (index, row) in enumerate(selected_genre_songs.iterrows()):
+                        for index, track in enumerate(tracks_info['tracks']):
                             if index >= 15:
                                 break
 
-                            temp_track_id = row['id']
+                            temp_track_id = track['id']
                             temp_track_features = sp.audio_features(temp_track_id)
                             temp_df = pd.DataFrame(temp_track_features, index=[0])
 
                             # Include track name and audio preview URL from 'tracks_info_dict'
-                            temp_df['track_name'] = row['name']
+                            temp_df['track_name'] = track['name']
                             if temp_track_features and 'preview_url' in temp_track_features[0]:
                                 temp_df['preview_url'] = temp_track_features[0]['preview_url']
                             else:
                                 temp_df['preview_url'] = None  # or some default value
 
-                            temp_features_df = temp_df.loc[:, ['track_name', 'acousticness', 'danceability', 'tempo', 'energy', 'preview_url']]
+                            temp_features_df = temp_df.loc[:, ['track_name', 'energy', 'danceability', 'tempo', 'valence',  'preview_url']]
                             temp_features_df_list.append(temp_features_df)
 
                         graph_df = pd.concat(temp_features_df_list, ignore_index=True)
 
-                        fig = px.scatter_3d(graph_df, x='tempo', y='energy', z='danceability', color='acousticness', size_max=18,
+                        fig = px.scatter_3d(graph_df, x='tempo', y='energy', z='danceability', color='valence', size_max=18,
                                             color_continuous_scale='aggrnyl', hover_name='track_name',
                                             labels={'tempo': 'Tempo', 'energy': 'Energy', 'danceability': 'Danceability'})
                         
