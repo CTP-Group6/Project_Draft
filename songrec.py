@@ -33,6 +33,7 @@ def get_track_recommendations(seed_tracks,token):
     return res.json()
 
 genre_matrix = pd.read_csv('preprocessed_matrix.csv').set_index('0')
+data = pd.read_csv('processed_songs.csv')
 def update_distance_selection(selected_distance, selected_genre, data):
     # Your logic to update genres based on the selected distance
     # This is just a placeholder, replace it with your actual logic
@@ -61,6 +62,6 @@ def update_distance_selection(selected_distance, selected_genre, data):
         updated_genres = []  # Handle unexpected cases
 
     # Filter songs based on the updated genres
-    selected_genre_songs = data[data['Genre'].isin(updated_genres.index)]
+    selected_genre_songs = data[data['genre'].isin(updated_genres.index)]
 
     return selected_genre_songs
