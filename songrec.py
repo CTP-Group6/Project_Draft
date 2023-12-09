@@ -7,7 +7,6 @@ import seaborn as sns
 import streamlit as st
 from PIL import Image
 
-
 def get_token(clientId,clientSecret):
     url = "https://accounts.spotify.com/api/token"
     headers = {}
@@ -33,7 +32,8 @@ def get_track_recommendations(seed_tracks,token):
     res = requests.get(url=recUrl, headers=headers)
     return res.json()
 
-    genre_matrix = pd.read_csv('preprocessed_matrix.csv').set_index('0')
+genre_matrix = pd.read_csv('preprocessed_matrix.csv').set_index('0')
+data = pd.read_csv('preprocessed_songs.csv')
 def update_distance_selection(selected_distance, selected_genre, data):
     # Your logic to update genres based on the selected distance
     # This is just a placeholder, replace it with your actual logic
@@ -62,5 +62,6 @@ def update_distance_selection(selected_distance, selected_genre, data):
         updated_genres = []  # Handle unexpected cases
 
     # Filter songs based on the updated genres
-    selected_genre_songs = data[data['Genre'].isin(updated_genres.index)]
+    selected_genre_songs = data[data['genre'].isin(updated_genres.index)]
+
     return selected_genre_songs
