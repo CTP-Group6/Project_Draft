@@ -33,35 +33,24 @@ def get_track_recommendations(seed_tracks,token):
     return res.json()
 
 genre_matrix = pd.read_csv('preprocessed_matrix.csv').set_index('0')
-data = pd.read_csv('processed_songs.csv')
-def update_distance_selection(selected_distance, selected_genre, data):
-    # Your logic to update genres based on the selected distance
-    # This is just a placeholder, replace it with your actual logic
-    if selected_distance == 'Very Far':
-        genre_distances = genre_matrix.loc[selected_genre]
-        sorted_genres = genre_distances.sort_values()
-        updated_genres = sorted_genres.iloc[-700:-1]
-    elif selected_distance == 'Far':
-        genre_distances = genre_matrix.loc[selected_genre]
-        sorted_genres = genre_distances.sort_values()
-        updated_genres = sorted_genres.iloc[-1300:-700]
-    elif selected_distance == 'Neutral':
-        genre_distances = genre_matrix.loc[selected_genre]
-        sorted_genres = genre_distances.sort_values()
-        updated_genres = sorted_genres.iloc[1400:1600]
-    elif selected_distance == 'Close':
-        genre_distances = genre_matrix.loc[selected_genre]
-        sorted_genres = genre_distances.sort_values()
-        updated_genres = sorted_genres.iloc[500:700]
-    elif selected_distance == 'Very Close':
-        genre_distances = genre_matrix.loc[selected_genre]
-        sorted_genres = genre_distances.sort_values()
-        updated_genres = sorted_genres.iloc[0:10]
-        
-    else:
-        updated_genres = []  # Handle unexpected cases
+songs_data = pd.read_csv('processed_songs.csv')
+def update_distance_selection(selected_distance, selected_genre, songs_data):
+    distance_ranges = {
+        'Very Far': slice(-700, -1),
+        'Far': slice(-1300, -700),
+        'Neutral': slice(800, 1600),
+        'Close': slice(300, 700),
+        'Very Close': slice(0, 100),
+    }
+
+    if selected_distance not in distance_ranges:
+        return pd.DataFrame()  # or handle unexpected cases
+
+    genre_distances = genre_matrix.loc[selected_genre]
+    sorted_genres = genre_distances.sort_values()
+    updated_genres = sorted_genres.iloc[distance_ranges[selected_distance]]
 
     # Filter songs based on the updated genres
-    selected_genre_songs = data[data['genre'].isin(updated_genres.index)]
+    selected_genre_songs = songs_data[songs_data['genre'].isin(updated_genres.index)]
 
     return selected_genre_songs

@@ -1,4 +1,5 @@
 import sys
+import ast
 import streamlit as st
 
 import pandas as pd
@@ -19,8 +20,8 @@ import songrec
 CURRENT_THEME = "green"
 
 st.set_page_config(
-    page_title="WAVfinder",
-    page_icon="👋",
+    page_title="wav.finder",
+    page_icon="🚀",
     layout="centered",
     initial_sidebar_state='auto'
 )
@@ -37,11 +38,11 @@ genre_matrix = pd.read_csv('preprocessed_matrix.csv').set_index('0')
 #Authentication - without user
 client_credentials_manager = SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager = client_credentials_manager)
-st.title("Wav.finder")
+st.title("🚀Wav.finder")
 
 distance_choices = ['Very Far', 'Far', 'Neutral', 'Close', 'Very Close']
-selected_distance = st.selectbox(
-    label="Select Distance below",
+selected_distance = st.sidebar.selectbox(
+    label="How far do you want to go?",
     options=distance_choices,
     index=2  # Default to 'Neutral'
 )
@@ -55,7 +56,7 @@ with st.sidebar:
 
     st.session_state.energy = st.slider("Energy", 0.000, 1.000, st.session_state.energy)
     st.session_state.danceability = st.slider("Danceability", 0.000, 1.000, st.session_state.danceability)
-    st.session_state.valence = st.slider("Valence", 0.000, 1.000, st.session_state.valence)
+    st.session_state.valence = st.slider("Emotion", 0.000, 1.000, st.session_state.valence)
 
 def update_sliders_based_on_track(track_features):
     if track_features:
@@ -75,18 +76,26 @@ button_clicked = st.button("Search")
 
 search_results = []
 tracks = []
+
 if search_keyword is not None and len(str(search_keyword)) > 0:
     st.write("Starting song search...")
-    tracks = sp.search(q='track'+search_keyword,type='track')
-    tracks_list = tracks['tracks']['items']
-    if len(tracks_list) > 0:
-        for track in tracks_list:
-            #st.write(track['name'] + " - By - " + track['artists'][0]['name'])
-            search_results.append(track['name'] + " - By - " + track['artists'][0]['name'])
+
+    try:
+        # Add a space between 'track' and the search keyword
+        tracks = sp.search(q='track ' + search_keyword, type='track', limit=10)
+        tracks_list = tracks['tracks']['items']
+
+        if tracks_list:
+            for track in tracks_list:
+                search_results.append(track['name'] + " - By - " + track['artists'][0]['name'])
+    except Exception as e:
+        st.write("An error occurred while searching for songs: " + str(e))
+
 
 selected_track = None
 track_id = None
-selected_track_choice = None
+track_features = None
+update_sliders_based_on_track(track_features)
 
 selected_track = st.selectbox("Select your song/track: ", search_results)
 
@@ -99,13 +108,8 @@ if selected_track is not None and len(tracks) > 0:
                 track_id = track['id']
                 preview = track['preview_url']
 
-
-    if track_id is not None:
-
         st.write("Please select track choice:")
-        #song_features_button = st.button('Song Features')
-        similar_songs_button = st.button('Similar Songs Recommendation')
-        similar_consigned_button = st.button('Similar Song Consigned')  
+        similar_consigned_button = st.button('Launch Song recommendations')  
 
         track_features  = sp.audio_features(track_id)
         track_info = sp.track(track_id)
@@ -130,7 +134,7 @@ if selected_track is not None and len(tracks) > 0:
         df = pd.DataFrame(track_features, index=[0])
         df_features = df.loc[: ,['energy', 'danceability', 'valence']]
         st.dataframe(df_features)
-
+        
         if 'previous_track_id' not in st.session_state or st.session_state.previous_track_id != track_id:
             st.session_state.previous_track_id = track_id
             update_sliders_based_on_track(track_features)
@@ -139,122 +143,63 @@ if selected_track is not None and len(tracks) > 0:
             st.audio(preview, format="audio/mp3")
 
 
-        if similar_songs_button:
-            token = songrec.get_token(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET)
-            similar_songs_json = songrec.get_track_recommendations(track_id,token)
-            recommendation_list = similar_songs_json['tracks']
-            recommendation_list_df = pd.DataFrame(recommendation_list)
-
-            # Extracting artist information in a readable format
-            recommendation_list_df['artists'] = recommendation_list_df['artists'].apply(lambda artists: ', '.join([artist['name'] for artist in artists]))
-
-            # Displaying the DataFrame with selected columns
-            st.write("Recommendations....")
-            st.dataframe(recommendation_list_df[['name', 'artists', 'explicit', 'duration_ms', 'popularity']])
-
-        elif similar_consigned_button:
-                    update_sliders_based_on_track(track_features)
+        if similar_consigned_button:
+                    
                     selected_genre_songs = songrec.update_distance_selection(selected_distance, selected_genre, songs_data)
-
                     # Check if matching songs are found for the selected genre
                     if not selected_genre_songs.empty:
                         # Filter selected songs based on range criteria
                         recommendations = selected_genre_songs[
                             selected_genre_songs['energy'].between(st.session_state.energy - 0.1, st.session_state.energy + 0.1) &
                             selected_genre_songs['danceability'].between(st.session_state.danceability - 0.1, st.session_state.danceability + 0.1) &
-                            selected_genre_songs['valence'].between(st.session_state.valence - 0.1, st.session_state.valence + 0.1)]
-
+                            selected_genre_songs['valence'].between(st.session_state.valence - 0.1, st.session_state.valence + 0.1)
+                            ]
                         # Recommend top 5 matching songs
+                        recommendations = recommendations.head(20)
+                        recommendations['artists'] = recommendations['artists'].apply(ast.literal_eval)
+
+                        # Extract the first artist from the 'Artists' column
+                        recommendations['firstartist'] = recommendations['artists'].apply(lambda x: x[0] if x else '')
+
                         st.write("Top 5 Recommendations:")
-                        st.dataframe(recommendations[['name', 'artists', 'genre','energy', 'danceability', 'valence']].head(10))
+
+                        recommendations = recommendations.rename(columns={
+                        'name': 'Track Name',
+                        'firstartist': 'Primary Artist',
+                        'genre': 'Genre',
+                        'energy': 'Energy Level',
+                        'danceability': 'Danceability',
+                        'valence': 'Emotion'
+                        })
+
+                        st.dataframe(recommendations[['Track Name', 'Primary Artist', 'Genre', 'Energy Level', 'Danceability', 'Emotion']].head(10))
                         
                         st.write("Creating graph of similar songs...")
 
-                        track_ids = selected_genre_songs['id'].tolist()[:20]
+                        track_ids = recommendations['id'].tolist()[:20]
 
                         # Get track information for multiple tracks
                         tracks_info = sp.tracks(track_ids)
 
 
-                        temp_features_df_list = []
 
-                        for index, track in enumerate(tracks_info['tracks']):
-                            if index >= 15:
-                                break
-
-                            temp_track_id = track['id']
-                            temp_track_features = sp.audio_features(temp_track_id)
-                            temp_df = pd.DataFrame(temp_track_features, index=[0])
-
-                            # Include track name and audio preview URL from 'tracks_info_dict'
-                            temp_df['track_name'] = track['name']
-                            if temp_track_features and 'preview_url' in temp_track_features[0]:
-                                temp_df['preview_url'] = temp_track_features[0]['preview_url']
-                            else:
-                                temp_df['preview_url'] = None  # or some default value
-
-                            temp_features_df = temp_df.loc[:, ['track_name', 'energy', 'danceability', 'tempo', 'valence',  'preview_url']]
-                            temp_features_df_list.append(temp_features_df)
-
-                        graph_df = pd.concat(temp_features_df_list, ignore_index=True)
-
-                        fig = px.scatter_3d(graph_df, x='tempo', y='energy', z='danceability', color='valence', size_max=18,
-                                            color_continuous_scale='aggrnyl', hover_name='track_name',
-                                            labels={'tempo': 'Tempo', 'energy': 'Energy', 'danceability': 'Danceability'})
-                        
+                        fig = px.scatter_3d(recommendations, x='Energy Level', y='Danceability', z='Emotion', color='Genre', size_max=18,
+                                            color_continuous_scale='aggrnyl', hover_name='Track Name', text='Track Name')
+                        #color by genre, make the primary song middle song and make it stand out. Song similarity
                         selected_points = plotly_events(fig, click_event=True, hover_event=False)
-                        
+                        if selected_points and 'points' in selected_points and selected_points['points']:
+                            # Get the track ID of the clicked point
+                            clicked_track_id = selected_points['points'][0]['id']
+
+                            # Update the spotify_embed_html string with the clicked track ID
+                            spotify_embed_html = f'<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/{clicked_track_id}?utm_source=generator"width="100%" height="440" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>'
+                            st.markdown(spotify_embed_html,unsafe_allow_html=True)
                         st.plotly_chart(fig)
+                        
 
 
 
 
 
     else:
-        st.write("Please select a track from the list")    
-
-
-
-
-
-if st.button("Graph"):
-    if selected_track_choice == 'Similar Songs Recommendation':
-        st.write("Creating graph of similar songs...")
-        
-        graph_df = pd.DataFrame()
-
-        for index, row in recommendation_list_df.iterrows():
-            temp_track_id = row['id']
-            temp_track_features = sp.audio_features(temp_track_id)
-            temp_df = pd.DataFrame(temp_track_features, index=[0])
-
-            # Include track name and audio preview URL from 'row' variable
-            temp_df['track_name'] = row['name']
-            temp_df['preview_url'] = row['preview_url']
-
-            temp_features_df = temp_df.loc[:, ['track_name', 'acousticness', 'danceability', 'tempo', 'energy', 'preview_url']]
-            graph_df = graph_df.append(temp_features_df, ignore_index=True)
-
-        fig = px.scatter_3d(graph_df, x='tempo', y='energy', z='danceability', color='acousticness', size_max=18,
-                            color_continuous_scale='aggrnyl', hover_name='track_name',
-                            labels={'tempo': 'Tempo', 'energy': 'Energy', 'danceability': 'Danceability'})
-        
-        selected_points = plotly_events(fig, click_event=True, hover_event=False)
-        
-        st.plotly_chart(fig)
-        
-        
-
-            
-    elif selected_track_choice == 'Song Features':
-        st.write("Creating graph based off features of your chosen song...")
-        graph_df = df_features
-
-        temp_features_df = graph_df.loc[: ,['acousticness', 'danceability', 'tempo', 'energy']]
-        graph_df = graph_df.append(temp_features_df)
-
-        fig = px.scatter_3d(graph_df, x='tempo', y='energy', z='danceability', color='acousticness', size_max=18,
-                    color_continuous_scale='aggrnyl', labels={'tempo': 'Tempo', 'energy': 'Energy', 'danceability': 'Danceability'})
-        st.plotly_chart(fig)
-
-
+        st.write("Please select a track from the list")
