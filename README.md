@@ -1,39 +1,33 @@
-# Building Web Apps with [Streamlit.io](https://streamlit.io/) 
+# 🚀 wav.finder
 
-You need to install a new library...
-* `pip install streamlit`
+Connecting user with songs all over the cosmos using comprehensive filters and song metrics. 
 
+## Table of Contents
 
-### Set up a virtual environment to test your app out locally.
-Navigate to the folder you want to build your app in. Then run the following.  
+- [Overview](#overview)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
-**Very important...**, when you are adding these code files to your github repo, **do not add the env folder at all**.  This is for local use only and will only slow down everything. 
+## Overview
 
-```
-mkdir env
+Ditch the playlist fatigue and dive into a tailored music experience. Our project taps into the science behind music preferences, analyzing energy, danceability, emotion, and genre to create a personalized playlist with precision. Using advanced metrics like cosine similarity and a genre distance matrix, we refine your choices for a seamless, mood-enhancing experience. Imagine a 3D graph visualizing your handpicked 10-song playlist, effortlessly exportable to Spotify. It's not hype; it's just a smart way to rediscover the joy in your music. Elevate your listening game with a blend of data and tunes that speaks to your taste.
 
-python3 -m venv env/
+## Getting Started
 
-source env/bin/activate
+To get started there are a few things you'll need to run this locally. 
+https://www.kaggle.com/datasets/georgeggcoco/closeness-of-music-genres
+https://www.kaggle.com/datasets/nikitricky/every-noise-at-once
+Both these datasets will need to be downloaded with the second link being able to substituted with 
 
+### Prerequisites
+
+List any software or dependencies that need to be installed before running the project.
+
+```bash
+# Example
 pip install -r requirements.txt
-```
-
-## Resources
-
-0. Streamlit [Offical Gallery and Tutorials](https://streamlit.io/gallery)
-
-0. Streamlit how to [deploy your App](https://docs.streamlit.io/streamlit-cloud/get-started/deploy-an-app). 
-
-0. Awesome student, Alex Chen, Example Apps
-	* [Image Classifier Code](https://github.com/112523chen/Image-Classification-App), and [website](https://112523chen-image-classification-dem0.streamlitapp.com/)
-
-	* [Data Viz Dashboard Code](https://github.com/112523chen/NYC-Airbnb-Data-Visualization-App), and [website](https://112523chen-nyc-airbnb-data-visualization-dem0.streamlitapp.com/)
-
-0. [Streamlit Cheat-Sheet](https://docs.streamlit.io/library/cheatsheet)
-
-1. Installable cool [3rd party components](https://streamlit.io/components) for streamlit.
-
-2. Cool [pycaret](https://github.com/pycaret/pycaret/tree/master/examples) examples.
-
-3. More cool [pycaret tutorials](https://pycaret.gitbook.io/docs/get-started/tutorials)
