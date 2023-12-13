@@ -17,6 +17,8 @@ Connecting user with songs all over the cosmos using comprehensive filters and s
 
   Ditch the playlist fatigue and dive into a tailored music experience. Our project taps into the science behind music preferences, analyzing energy, danceability, emotion, and genre to give a varied listening eperience. Using advanced metrics like cosine similarity and a genre distance matrix, we refine your choices for a seamless, mood-enhancing experience. Imagine different galaxies of songs you can trevel to, instead of just the same ones you've already heard over and over. It's not hype; it's just a smart way to rediscover the joy in your music. Elevate your listening game with a blend of data and tunes that speaks to your adventurous nature.
 
+![alt text](https://github.com/CTP-Group6/Project_Draft/blob/Ws/wav_finder_proof.png?raw=True)
+
 ## Getting Started
 
 ### Prerequisites
