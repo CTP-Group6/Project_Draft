@@ -25,7 +25,7 @@ import songrec
 st.set_page_config(
     page_title="wav.finder",
     page_icon="🚀",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state='auto'
 )
 def sidebar_bg(side_bg):
@@ -231,7 +231,7 @@ if selected_track is not None and len(tracks) > 0:
             height=600  # Set the height of the figure
             )
             #color by genre, make the primary song middle song and make it stand out. Song similarity
-            col1.plotly_chart(fig, use_container_width=False)
+            col1.plotly_chart(fig, use_container_width=True)
 
                         
 
