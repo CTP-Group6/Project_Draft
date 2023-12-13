@@ -19,15 +19,28 @@ Ditch the playlist fatigue and dive into a tailored music experience. Our projec
 
 ## Getting Started
 
-To get started there are a few things you'll need to run this locally. 
-https://www.kaggle.com/datasets/georgeggcoco/closeness-of-music-genres
-https://www.kaggle.com/datasets/nikitricky/every-noise-at-once
-Both these datasets will need to be downloaded with the second link being able to substituted with 
-
 ### Prerequisites
 
-List any software or dependencies that need to be installed before running the project.
+There are 2 required datasets:
+* .csv (Data files)
+  * https://www.kaggle.com/datasets/georgeggcoco/closeness-of-music-genres (preprocessed_matrix.cxv)
+  * https://www.kaggle.com/datasets/nikitricky/every-noise-at-once (processed_songs.csv)
+  
+Both these datasets will need to be downloaded with the second link being able to substituted with 
 
-```bash
-# Example
-pip install -r requirements.txt
+### Setup
+
+You will also need to have Streamlit and other dependencies installed.
+For a simple setup:
+
+* Make a local directory, and ```git clone``` the repository
+* Set up a virtual environment
+  * ```python3 -m venv venv ```
+* Activate the environment
+  * ```. venv/bin/activate ```
+* Install dependencies
+  * ```pip install -r requirements.txt```
+* Run the app
+  * ``` streamlit run Spotifytest.py ```
+* Try it out! 
+
